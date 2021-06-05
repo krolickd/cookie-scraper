@@ -12,7 +12,7 @@ import json
 import base64
 import sqlite3
 from shutil import copyfile
-
+import sys
 # python.exe -m pip install pypiwin32
 import win32crypt
 # python.exe -m pip install pycryptodomex
@@ -20,7 +20,32 @@ from Cryptodome.Cipher import AES
 
 COOKIE_PATH = os.getenv("APPDATA") + "/../Local/Google/Chrome/User Data/Default/Cookies"
 AUTH_PATH = os.getenv("APPDATA") + "/../Local/Google/Chrome/User Data/Local State"
-TMS_URL = 'tms[15]:https://heatmap-external-{switch:a,b,c}.strava.com/tiles-auth/all/hot/{zoom}/{x}/{y}.png'
+
+
+MAP_ACTIVITIES =  ('all', 'ride', 'run', 'water', 'winter')
+MAP_COLORS = ('hot', 'blue', 'purple', 'gray', 'bluered')
+
+args = sys.argv[1:]
+
+map_color = MAP_COLORS[0]
+map_activity = MAP_ACTIVITIES[0]
+
+for i,arg in enumerate(args):
+	if arg == "-c":
+		if args[i+1] in MAP_COLORS:
+			map_color = args[i+1]
+		else:
+			print(f"valid colors: {MAP_COLORS}, default: {map_color}")
+	
+	if arg == "-a":
+		if args[i+1] in MAP_ACTIVITIES:
+			map_activity = args[i+1]
+		else:
+			print(f"valid actvities: {MAP_ACTIVITIES}, default: {map_activity}")
+
+			
+
+TMS_URL = 'tms[15]:https://heatmap-external-{switch:a,b,c}.strava.com/tiles-auth/'+map_activity+'/'+map_color+'/{zoom}/{x}/{y}.png'
 
 # Copy Cookies and Local State to current folder
 copyfile(COOKIE_PATH, './local_cookies')
