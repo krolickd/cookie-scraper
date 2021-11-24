@@ -13,8 +13,10 @@ import base64
 import sqlite3
 from shutil import copyfile
 import sys
+
 # python.exe -m pip install pypiwin32
 import win32crypt
+
 # python.exe -m pip install pycryptodomex
 from Cryptodome.Cipher import AES
 
@@ -27,24 +29,35 @@ MAP_COLORS = ('hot', 'blue', 'purple', 'gray', 'bluered')
 
 args = sys.argv[1:]
 
+#default parameters
 map_color = MAP_COLORS[0]
 map_activity = MAP_ACTIVITIES[0]
 
+#Process parameters
 for i,arg in enumerate(args):
-	if arg == "-c":
+	#line color
+	if "-c" in arg:
 		if args[i+1] in MAP_COLORS:
 			map_color = args[i+1]
 		else:
 			print(f"valid colors: {MAP_COLORS}, default: {map_color}")
 	
-	if arg == "-a":
+	#activity
+	if "-a" in arg:
 		if args[i+1] in MAP_ACTIVITIES:
 			map_activity = args[i+1]
 		else:
 			print(f"valid actvities: {MAP_ACTIVITIES}, default: {map_activity}")
-
+	
+	#help
+	if "-h" in arg:
+		print()
+		print("usage: generate_tms.py [-a activity | -c color] ...")
+		print(f"activity: {MAP_ACTIVITIES}")
+		print(f"color: {MAP_COLORS}")
+		quit()
 			
-
+#Add display options to template url
 TMS_URL = 'tms[15]:https://heatmap-external-{switch:a,b,c}.strava.com/tiles-auth/'+map_activity+'/'+map_color+'/{zoom}/{x}/{y}.png'
 
 # Copy Cookies and Local State to current folder
@@ -84,16 +97,19 @@ conn.commit()
 conn.close()
 
 try:
+	#Request specific decrypted cookie values
 	key_pair = cookies['CloudFront-Key-Pair-Id'].decode('utf-8')
 	policy = cookies['CloudFront-Policy'].decode('utf-8')
 	signature = cookies['CloudFront-Signature'].decode('utf-8')
 
-
+	#Append parameters to template url
 	connection_string = TMS_URL + '?Key-Pair-Id=' + key_pair
 	connection_string += '&Policy=' + policy
 	connection_string += '&Signature=' + signature
 
+	#Print final connection string
 	print()
+	print(f"activity:{map_activity}, color:{map_color}")
 	print(connection_string)
 
 except KeyError:
